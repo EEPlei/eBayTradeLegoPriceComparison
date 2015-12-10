@@ -13,7 +13,7 @@ query_map <- data.frame(predicates = predicates, query = query,stringsAsFactors 
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel("Cheape Lego From eBay"),
+  titlePanel("Cheap Lego From eBay"),
   sidebarLayout(
     sidebarPanel(
       selectInput("set", "Select a Lego set:", Sets$sets),
