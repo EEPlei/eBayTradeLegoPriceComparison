@@ -33,6 +33,20 @@ total <- function(df){
   z$est <- apply(z, 1, calc.est)
   return(z)
 }
+
+filter_brute <- function(actual.df, hist.df){
+  x <- actual.df[order(actual.df$total, decreasing = FALSE), ]
+  lb <- median(actual.df$total)*0.5
+  hb <- median(actual.df$total)*1.5
+  x <- filter(x, total <= hb)
+  x <- filter(x, total >= lb)
+  x$savings <- median(x$total) - x$total   
+  y <- hist.df
+  cutoff <- quantile(y$total, probs = .25)
+  best <- filter(x, total <= cutoff)
+  return(list(cutoff = cutoff,best = best))
+}
+
 filter_brute <- function(actual.df, hist.df){
   x <- actual.df[order(actual.df$total, decreasing = FALSE), ]
   lb <- median(actual.df$total)*0.5
@@ -75,6 +89,10 @@ shinyServer(function(input, output,session) {
   
   clustering = reactive({
     input$clustering
+  })
+  
+  sortBy = reactive({
+    input$sortBy
   })
   
   url = reactive({
