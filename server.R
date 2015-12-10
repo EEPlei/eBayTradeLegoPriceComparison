@@ -35,13 +35,12 @@ total <- function(df){
   return(z)
 }
 
-filter_brute <- function(active, hist){
-  x$savings <- median(x$total) - x$total   
-  y <- hist.df[order(hist.df$total, decreasing = FALSE),]
-  lb.hist <- median(hist.df$total)*0.5
-  hb.hist <- median(hist.df$total)*1.5
-  y <- filter(y, total <= hb.hist)
-  y <- filter(y, total >= lb)
+filter_best <- function(active, hist){
+  active <- total(active)
+  hist <- total(active)
+  x <- active[order(active$total, decreasing = FALSE),]
+  y <- hist[order(hist$total, decreasing = FALSE),]
+  x$savings <- median(x$total) - x$total
   cutoff <- quantile(y$total, probs = .25)
   best <- filter(x, total <= cutoff)
   return(list(cutoff = cutoff,best = best))
@@ -127,12 +126,12 @@ shinyServer(function(input, output,session) {
   
   
   results = reactive({
-    x <- filter_func(total(active()), total(hist()))$best
+    res <- filter_best(active(), hist())$best
     if(sortBy == "lowest total cost"){
-      y <- x[order(x$total, decreasing = FALSE),]
+      y <- res[order(res$total, decreasing = FALSE),]
     }
     else if(sortBy == "time ending soonest"){
-      y <- x[order(as.numeric(x$time), decreasing = FALSE),]
+      y <- res[order(as.numeric(res$time), decreasing = FALSE),]
     }
     y
   })
