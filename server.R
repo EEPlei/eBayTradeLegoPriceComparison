@@ -128,6 +128,13 @@ shinyServer(function(input, output,session) {
   
   results = reactive({
     x <- filter_func(total(active()), total(hist()))$best
+    if(sortBy == "lowest total cost"){
+      y <- x[order(x$total, decreasing = FALSE),]
+    }
+    else if(sortBy == "time ending soonest"){
+      y <- x[order(as.numeric(x$time), decreasing = FALSE),]
+    }
+    y
   })
   output$cutoff_price <- renderText({
     #naive approach: get the 25% quantile of historical()
@@ -135,7 +142,7 @@ shinyServer(function(input, output,session) {
   })
   
   output$table <- renderTable({
-    filter_func(total(active()), total(hist()))$best
+    results()
   })
   
   
