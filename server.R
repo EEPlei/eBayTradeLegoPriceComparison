@@ -16,7 +16,35 @@ gq <- function(pred){ #gq = get query
   map[map$predicates == pred,]$query
 } 
 scrape <- function(url){
-  return(df)
+  html = read_html(url)
+  web_pages = html_nodes(html, ".vip") %>%
+              html_attr("href")
+  
+  shipping_cost = lapply(web_pages, 
+                         function(x){
+                           link = read_html(x)
+                           shipping_cost = html_nodes(link, "#fshippingCost") %>%
+                                           html_text() %>%
+                                           str_trim()
+                         })
+  
+  title = html_nodes(html, ".lvtitle") %>%
+          html_text() %>%
+          str_trim()
+  
+  price = html_nodes(html, ".prc .bold") %>%
+          html_text() %>%
+          str_trim() %>%
+          str_extract("[$0-9.]*") 
+  
+  ending_time = html_nodes(html, ".tme") %>%
+                html_text() %>%
+                str_trim() 
+  
+  t = cbind(title, price, ending_time, shipping_cost, web_pages)  
+  final_df = as.data.frame(t)
+  final_df$shipping_cost[final_df$shipping_cost=="character(0)"] = "Calculate"
+  return(final_df)
 }
 total <- function(df){
   z <- df
