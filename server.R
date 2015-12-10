@@ -137,7 +137,7 @@ shinyServer(function(input, output,session) {
   })
   output$cutoff_price <- renderText({
     #naive approach: get the 25% quantile of historical()
-    filter_func(total(active()), total(hist()))$cutoff
+    filter_best(active(), hist())$cutoff
   })
   
   output$table <- renderTable({
