@@ -27,8 +27,9 @@ shinyUI(fluidPage(
       radioButtons("condition", "Condition of the listing", c("New","Used")),
       hr(),
       checkboxInput("free_shipping", "Free Shipping", FALSE),
+      hr(),
+      selectInput("clustering", "Select a clustering method to filter nice Lego sets:", c("Brute Force","K-means")),
       hr()
-      
     ),
     
     # Show a plot of the generated distribution

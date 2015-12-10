@@ -51,6 +51,10 @@ shinyServer(function(input, output,session) {
     input$freeshipping
   })
   
+  clustering = reactive({
+    input$clustering
+  })
+  
   url = reactive({
     url = paste0(base_url,"&_nkw=Lego ",set(), gq(type), gq(condition))
     if(best_offer())
