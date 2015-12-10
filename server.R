@@ -50,15 +50,18 @@ filter_brute <- function(actual.df, hist.df){
   best <- filter(x, total <= cutoff)
   return(list(cutoff = cutoff,best = best))
 }
-
-filter_brute <- function(actual.df, hist.df){
-  x <- actual.df[order(actual.df$total, decreasing = FALSE), ]
-  lb <- median(actual.df$total)*0.5
-  hb <- median(actual.df$total)*1.5
+filter_best <- function(df){
+  x <- df[order(df$total, decreasing = FALSE),]
+  lb <- median(df$total)*0.5
+  hb <- median(df$total)*1.5
   x <- filter(x, total <= hb)
   x <- filter(x, total >= lb)
+  return(x)
+}
+filter_brute <- function(actual.df, hist.df){
+  x <- filter_best(actual.df)
   x$savings <- median(x$total) - x$total   
-  y <- hist.df
+  y <- filter_best(hist.df)
   cutoff <- quantile(y$total, probs = .25)
   best <- filter(x, total <= cutoff)
   return(list(cutoff = cutoff,best = best))
