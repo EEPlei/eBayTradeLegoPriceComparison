@@ -1,6 +1,7 @@
 library(shiny)
 library(magrittr)
 library(httr)
+library(dplyr)
 
 sets = c("4184: Black Pearl","4195: Queen Annes Revenge","2507: Fire Temple","10232: Palace Cinema","70810: MetalBeard's Sea Cow","10193: Medieval Market Village")   
 numbers = c('4184','4195','2507','10232','70810','10193')
@@ -34,12 +35,7 @@ total <- function(df){
   return(z)
 }
 
-filter_brute <- function(actual.df, hist.df){
-  x <- actual.df[order(actual.df$total, decreasing = FALSE), ]
-  lb <- median(actual.df$total)*0.5
-  hb <- median(actual.df$total)*1.5
-  x <- filter(x, total <= hb)
-  x <- filter(x, total >= lb)
+filter_brute <- function(active, hist){
   x$savings <- median(x$total) - x$total   
   y <- hist.df[order(hist.df$total, decreasing = FALSE),]
   lb.hist <- median(hist.df$total)*0.5
@@ -50,21 +46,19 @@ filter_brute <- function(actual.df, hist.df){
   best <- filter(x, total <= cutoff)
   return(list(cutoff = cutoff,best = best))
 }
-filter_best <- function(df){
-  x <- df[order(df$total, decreasing = FALSE),]
-  lb <- median(df$total)*0.5
-  hb <- median(df$total)*1.5
-  x <- filter(x, total <= hb)
-  x <- filter(x, total >= lb)
+filter_brute <- function(df){
+  x <- df[order(df$price, decreasing = FALSE),]
+  lb <- median(df$price)*0.5
+  hb <- median(df$price)*1.5
+  x <- filter(x, price <= hb)
+  x <- filter(x, price >= lb)
   return(x)
 }
-filter_brute <- function(actual.df, hist.df){
-  x <- filter_best(actual.df)
-  x$savings <- median(x$total) - x$total   
-  y <- filter_best(hist.df)
-  cutoff <- quantile(y$total, probs = .25)
-  best <- filter(x, total <= cutoff)
-  return(list(cutoff = cutoff,best = best))
+filter_kmeans <- function(df){
+  clu <- kmeans(df$price,3)$cluster
+  df <- cbind(df,clu)
+  x <- filter(df, clu == 2)
+  return(x)
 }
 
 
@@ -117,16 +111,23 @@ shinyServer(function(input, output,session) {
   })
   
   active = reactive({
-    filter(scrape(url))
+    if(clustering == "Brute Force")
+      return(filter_brute(scrape(url)))
+    else if(clustering == "Kmeans")
+      return(filter_kmeans(scrape(url)))
   })
   
   historical = reactive({
     url_his = paste0(url,gq("Sold"))
-    filter(scrape(url_his))
+    if(clustering == "Brute Force")
+      return(filter_brute(scrape(url_his)))
+    else if(clustering == "Kmeans")
+      return(filter_kmeans(scrape(url_his)))
   })
+  
+  
   results = reactive({
     x <- filter_func(total(active()), total(hist()))$best
-    
   })
   output$cutoff_price <- renderText({
     #naive approach: get the 25% quantile of historical()
