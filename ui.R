@@ -29,6 +29,8 @@ shinyUI(fluidPage(
       checkboxInput("free_shipping", "Free Shipping", FALSE),
       hr(),
       selectInput("clustering", "Select a clustering method to filter nice Lego sets:", c("Brute Force","K-means")),
+      hr(),
+      selectInput("sortBy", "Sort the result by:", c("lowest total cost","time ending soonest")),
       hr()
     ),
     
