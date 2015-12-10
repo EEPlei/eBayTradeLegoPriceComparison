@@ -14,14 +14,39 @@ map <- data.frame(predicates = predicates, query = query)
 gq <- function(pred){ #gq = get query
   map[map$predicates == pred,]$query
 } 
-
 scrape <- function(url){
-  
   return(df)
+}
+total <- function(df){
+  z <- df
+  calc.rep <- function(row){
+    calc <- filter(z, ship != "calculate")
+    calc.mean <- mean(as.numeric(calc$ship))
+    ifelse(row['ship'] == "calculate", yes = calc.mean, 
+           no = (as.numeric(row['price']) + as.numeric(row['ship'])))
+  }
+  z$total <- apply(z, 1, calc.rep)
+  calc.est <- function(row){
+    ifelse(row['ship'] == "calculate", yes = "estimated", 
+           no = "exact")
+  }
+  z$est <- apply(z, 1, calc.est)
+  return(z)
+}
+filter.func <- function(actual.df, hist.df){
+  x <- actual.df[order(actual.df$total, decreasing = FALSE), ]
+  lb <- median(actual.df$total)*0.5
+  hb <- median(actual.df$total)*1.5
+  x <- filter(x, total <= hb)
+  x <- filter(x, total >= lb)
+  x$savings <- median(x$total) - x$total   
+  y <- hist.df
+  cutoff <- quantile(y$total, probs = .25)
+  best <- filter(x, total <= cutoff)
+  return(best)
 }
 
 filter <- function(df){
-  
   return(df)
 }
 
