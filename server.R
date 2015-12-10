@@ -41,7 +41,11 @@ filter_brute <- function(actual.df, hist.df){
   x <- filter(x, total <= hb)
   x <- filter(x, total >= lb)
   x$savings <- median(x$total) - x$total   
-  y <- hist.df
+  y <- hist.df[order(hist.df$total, decreasing = FALSE),]
+  lb.hist <- median(hist.df$total)*0.5
+  hb.hist <- median(hist.df$total)*1.5
+  y <- filter(y, total <= hb.hist)
+  y <- filter(y, total >= lb)
   cutoff <- quantile(y$total, probs = .25)
   best <- filter(x, total <= cutoff)
   return(list(cutoff = cutoff,best = best))
@@ -117,7 +121,10 @@ shinyServer(function(input, output,session) {
     url_his = paste0(url,gq("Sold"))
     filter(scrape(url_his))
   })
-  
+  results = reactive({
+    x <- filter_func(total(active()), total(hist()))$best
+    
+  })
   output$cutoff_price <- renderText({
     #naive approach: get the 25% quantile of historical()
     filter_func(total(active()), total(hist()))$cutoff
