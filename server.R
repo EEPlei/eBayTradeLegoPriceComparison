@@ -12,7 +12,7 @@ query <- c("&LH_Auction=1","&LH_BIN=1","&LH_ItemCondition=11","&LH_ItemCondition
 map <- data.frame(predicates = predicates, query = query)
 
 gq <- function(pred){ #gq = get query
-  map[map$predicates = pred,]$query
+  map[map$predicates == pred,]$query
 } 
 
 scrape <- function(url){
@@ -75,11 +75,15 @@ shinyServer(function(input, output,session) {
   })
   
   output$cutoff_price <- renderText({
+    #naive approach: get the 25% quantile of historical()
     print()
   })
   
   output$table <- renderTable({
-    somedf
+    result <- active()
+    active() <- active()[c("title","price","time to ending", "shipping cost","link")] %>%
+                active()[active()$price <= output$cutoff_price]
+    result
   })
   
   
