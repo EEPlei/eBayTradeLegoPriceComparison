@@ -43,12 +43,9 @@ filter.func <- function(actual.df, hist.df){
   y <- hist.df
   cutoff <- quantile(y$total, probs = .25)
   best <- filter(x, total <= cutoff)
-  return(best)
+  return(list(cutoff = cutoff,best = best))
 }
 
-filter <- function(df){
-  return(df)
-}
 
 base_url <- "http://www.ebay.com/sch/i.html?_from=R40"
 #http://www.ebay.com/sch/i.html?_from=R40&_nkw=Lego%20black%20pearl&LH_BIN=1&LH_ItemCondition=12&_ipg=200&_sop=10
