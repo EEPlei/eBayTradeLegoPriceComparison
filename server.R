@@ -33,7 +33,7 @@ total <- function(df){
   z$est <- apply(z, 1, calc.est)
   return(z)
 }
-filter.func <- function(actual.df, hist.df){
+filter_brute <- function(actual.df, hist.df){
   x <- actual.df[order(actual.df$total, decreasing = FALSE), ]
   lb <- median(actual.df$total)*0.5
   hb <- median(actual.df$total)*1.5
