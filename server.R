@@ -33,7 +33,7 @@ total <- function(df){
   z$est <- apply(z, 1, calc.est)
   return(z)
 }
-filter.func <- function(actual.df, hist.df){
+filter_brute <- function(actual.df, hist.df){
   x <- actual.df[order(actual.df$total, decreasing = FALSE), ]
   lb <- median(actual.df$total)*0.5
   hb <- median(actual.df$total)*1.5
@@ -102,14 +102,11 @@ shinyServer(function(input, output,session) {
   
   output$cutoff_price <- renderText({
     #naive approach: get the 25% quantile of historical()
-    print()
+    filter_func(total(active()), total(hist()))$cutoff
   })
   
   output$table <- renderTable({
-    result <- active()
-    active() <- active()[c("title","price","time to ending", "shipping cost","link")] %>%
-                active()[active()$price <= output$cutoff_price]
-    result
+    filter_func(total(active()), total(hist()))$best
   })
   
   
