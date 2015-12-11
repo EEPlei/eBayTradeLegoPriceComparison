@@ -51,40 +51,67 @@ scrape <- function(url){
 }
 total <- function(df){
   z <- df
+  z$price <- as.numeric(substring(z$price, 2))
+  free.rep <- function(row){
+    ifelse(row$shipping_cost == "FREE", yes = 0, no = row$shipping_cost)
+  }
+  z$shipping_cost <- apply(z, 1, free.rep)
+  dollar.rep <- function(row){
+    ifelse(row$shipping_cost != "Calculate" & row$shipping_cost != 0, 
+           yes = substring(row$shipping_cost, 2), no = row$shipping_cost)
+  }
+  z$shipping_cost <- apply(z, 1, dollar.rep)
   calc.rep <- function(row){
-    calc <- filter(z, ship != "calculate")
-    calc.mean <- mean(as.numeric(calc$ship))
-    ifelse(row['ship'] == "calculate", yes = calc.mean, 
-           no = (as.numeric(row['price']) + as.numeric(row['ship'])))
+    calc <- filter(z, shipping_cost != "Calculate")
+    calc.mean <- mean(as.numeric(calc$shipping_cost))
+    ifelse(row['shipping_cost'] == "Calculate", 
+           yes = calc.mean + as.numeric(row['price']), 
+           no = (as.numeric(row['price']) + as.numeric(row['shipping_cost'])))
   }
   z$total <- apply(z, 1, calc.rep)
   calc.est <- function(row){
-    ifelse(row['ship'] == "calculate", yes = "estimated", 
+    ifelse(row['shipping_cost'] == "Calculate", yes = "estimated", 
            no = "exact")
   }
   z$est <- apply(z, 1, calc.est)
+  z$price <- df$price
+  add_dollar <- function(row){
+    ifelse(row['shipping_cost'] != "Calculate", 
+           yes = paste0("$", row['shipping_cost']), 
+           no = row['shipping_cost'])
+  }
+  z$shipping_cost <- apply(z, 1, add_dollar)
+  z$total <- paste0("$", z$total)
   return(z)
 }
 
 filter_best <- function(active, hist){
   active <- total(active)
   hist <- total(active)
+  active$total <- as.numeric(substring(active$total, 2))
   x <- active[order(active$total, decreasing = FALSE),]
+  hist$total <- as.numeric(substring(hist$total, 2))
   y <- hist[order(hist$total, decreasing = FALSE),]
   x$savings <- median(x$total) - x$total
   cutoff <- quantile(y$total, probs = .25)
   best <- filter(x, total <= cutoff)
+  best$savings <- ifelse(best$savings >= 0, 
+                         yes = paste0('$', best$savings), 
+                         no = paste0('-$',substring(best$savings,2)))
+  best$total <- paste0("$", best$total)
   return(list(cutoff = cutoff,best = best))
 }
 filter_brute <- function(df){
+  df$price <- as.numeric(substring(df$price, 2))
   x <- df[order(df$price, decreasing = FALSE),]
-  lb <- median(df$price)*0.5
-  hb <- median(df$price)*1.5
+  lb <- median(x$price)*0.5
+  hb <- median(x$price)*1.5
   x <- filter(x, price <= hb)
   x <- filter(x, price >= lb)
   return(x)
 }
 filter_kmeans <- function(df){
+  df$price <- as.numeric(substring(df$price, 2))
   clu <- kmeans(df$price,3)$cluster
   df <- cbind(df,clu)
   x <- filter(df, clu == 2)
