@@ -169,13 +169,13 @@ shinyServer(function(input, output,session) {
   
   active = reactive({
     if(clustering() == "Brute Force")
-      return(filter_brute(scrape(url)))
+      return(filter_brute(scrape(url())))
     else if(clustering() == "Kmeans")
-      return(filter_kmeans(scrape(url)))
+      return(filter_kmeans(scrape(url())))
   })
   
   historical = reactive({
-    url_his = paste0(url,gq("Sold"))  #order will be ending recent, no matter sop = 1 or 10
+    url_his = paste0(url(),gq("Sold"))  #order will be ending recent, no matter sop = 1 or 10
     if(clustering() == "Brute Force")
       return(filter_brute(scrape(url_his)))
     else if(clustering() == "Kmeans")
