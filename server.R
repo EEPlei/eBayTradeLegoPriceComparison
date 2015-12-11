@@ -154,7 +154,7 @@ shinyServer(function(input, output,session) {
   })
   
   url = reactive({
-    url = paste0(base_url,"&_nkw=Lego ",set(), gq(type), gq(condition))
+    url = paste0(base_url,"&_nkw=Lego ",set(), gq(type()), gq(condition()))
     if(best_offer())
       url = paste0(url, gq("Best Offer"))
     if(free_shipping())
