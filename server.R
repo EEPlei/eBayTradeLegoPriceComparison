@@ -9,7 +9,7 @@ names = c("Black Pearl","Queen Annes Revenge","Fire Temple","Palace Cinema","Met
 Sets = data.frame(sets = sets, numbers = numbers, names = names)
 
 predicates <- c("Auctions","Buy it now","New","Used","Free Shipping","Best Offer","Sold")
-query <- c("&LH_Auction=1","&LH_BIN=1","&LH_ItemCondition=11","&LH_ItemCondition=12","&LH_FS=1","&LH_BO=1","&LH_Sold=1")
+query <- c("&LH_Auction=1","&LH_BIN=1","&LH_ItemCondition=11","&LH_ItemCondition=12","&LH_FS=1","&LH_BO=1","&LH_Complete=1&LH_Sold=1")
 map <- data.frame(predicates = predicates, query = query)
 
 gq <- function(pred){ #gq = get query
@@ -145,7 +145,7 @@ shinyServer(function(input, output,session) {
   })
   
   historical = reactive({
-    url_his = paste0(url,gq("Sold"))
+    url_his = paste0(url,gq("Sold"))  #order will be ending recent, no matter sop = 1 or 10
     if(clustering == "Brute Force")
       return(filter_brute(scrape(url_his)))
     else if(clustering == "Kmeans")
