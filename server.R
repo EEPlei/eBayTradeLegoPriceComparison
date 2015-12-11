@@ -125,7 +125,7 @@ base_url <- "http://www.ebay.com/sch/i.html?_from=R40"
 
 shinyServer(function(input, output,session) {
   set = reactive({
-    input$set
+    Sets[Sets$sets == input$set,]$names
   })
   
   type = reactive({
@@ -155,15 +155,20 @@ shinyServer(function(input, output,session) {
   
   url = reactive({
     url = paste0(base_url,"&_nkw=Lego ",set(), gq(type()), gq(condition()))
-    if(best_offer())
-      url = paste0(url, gq("Best Offer"))
-    if(free_shipping())
-      url = paste0(url, gq("Free Shipping"))
+    print(url)
+    print(best_offer())
+    if(!is.null(best_offer()))
+      if(best_offer())
+        url = paste0(url, gq("Best Offer"))
+    if(!is.null(free_shipping()))
+        if(free_shipping())
+          url = paste0(url, gq("Free Shipping"))
     url = paste0(url, "&_ipg=200")  #200 listings per page
     if(type() == 'Auctions')
       url = paste0(url, "&_sop=1")  #if auctions, get the ending soonest listings
     else if(type() == 'Buy it now')
       url = paste0(url, "&_sop=10")  #if BIN, get the newly listed listings
+    print(url)
     url
   })
   
