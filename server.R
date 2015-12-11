@@ -194,7 +194,11 @@ shinyServer(function(input, output,session) {
       y <- res[order(res$total, decreasing = FALSE),]
     }
     else if(sortBy() == "time ending soonest"){
-      y <- res[order(as.numeric(res$time), decreasing = FALSE),]
+      y <- res
+      res$ending_time <- lapply(res$ending_time, strptime, "%b-%d %H:%M")
+      ind <- sapply(res$ending_time, as.numeric)
+      ind <- order(ind, decreasing = FALSE)
+      y <- y[ind,]
     }
     y
   })
