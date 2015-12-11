@@ -157,38 +157,38 @@ shinyServer(function(input, output,session) {
     url = paste0(base_url,"&_nkw=Lego ",set(), gq(type), gq(condition))
     if(best_offer())
       url = paste0(url, gq("Best Offer"))
-    if(free_shipping)
+    if(free_shipping())
       url = paste0(url, gq("Free Shipping"))
     url = paste0(url, "&_ipg=200")  #200 listings per page
-    if(type == 'Auctions')
+    if(type() == 'Auctions')
       url = paste0(url, "&_sop=1")  #if auctions, get the ending soonest listings
-    else if(type == 'Buy it now')
+    else if(type() == 'Buy it now')
       url = paste0(url, "&_sop=10")  #if BIN, get the newly listed listings
     url
   })
   
   active = reactive({
-    if(clustering == "Brute Force")
+    if(clustering() == "Brute Force")
       return(filter_brute(scrape(url)))
-    else if(clustering == "Kmeans")
+    else if(clustering() == "Kmeans")
       return(filter_kmeans(scrape(url)))
   })
   
   historical = reactive({
     url_his = paste0(url,gq("Sold"))  #order will be ending recent, no matter sop = 1 or 10
-    if(clustering == "Brute Force")
+    if(clustering() == "Brute Force")
       return(filter_brute(scrape(url_his)))
-    else if(clustering == "Kmeans")
+    else if(clustering() == "Kmeans")
       return(filter_kmeans(scrape(url_his)))
   })
   
   
   results = reactive({
     res <- filter_best(active(), hist())$best
-    if(sortBy == "lowest total cost"){
+    if(sortBy() == "lowest total cost"){
       y <- res[order(res$total, decreasing = FALSE),]
     }
-    else if(sortBy == "time ending soonest"){
+    else if(sortBy() == "time ending soonest"){
       y <- res[order(as.numeric(res$time), decreasing = FALSE),]
     }
     y
