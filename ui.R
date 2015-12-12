@@ -27,17 +27,15 @@ shinyUI(fluidPage(
       radioButtons("condition", "Condition of the listing", c("New","Used")),
       hr(),
       checkboxInput("free_shipping", "Free Shipping", FALSE),
-      hr(),
-      selectInput("clustering", "Select a clustering method to filter nice Lego sets:", c("Brute Force","K-means")),
-      hr(),
-      selectInput("sortBy", "Sort the result by:", c("lowest total cost","time ending soonest")),
       hr()
     ),
     
     # Show a plot of the generated distribution
     mainPanel(
       h3("Results:"),
-      textOutput("cutoff_price"),
+      h4("Scraping is slow...Please be patient."),
+      
+
       tableOutput("table")
     )
   )

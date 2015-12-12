@@ -6,9 +6,10 @@ library(stringr)
 library(rvest)
 library(xml2)
 
-sets = c("4184: Black Pearl","4195: Queen Annes Revenge","2507: Fire Temple","10232: Palace Cinema","70810: MetalBeard's Sea Cow","10193: Medieval Market Village")   
-numbers = c('4184','4195','2507','10232','70810','10193')
-names = c("Black Pearl","Queen Annes Revenge","Fire Temple","Palace Cinema","MetalBeard's Sea Cow","Medieval Market Village") 
+
+sets = c("4184: Black Pearl","4195: Queen Annes Revenge","2507: Fire Temple","10232: Palace Cinema","10193: Medieval Market Village")   
+numbers = c('4184','4195','2507','10232','10193')
+names = c("Black Pearl","Queen Annes Revenge","Fire Temple","Palace Cinema","Medieval Market Village") 
 Sets = data.frame(sets = sets, numbers = numbers, names = names)
 
 predicates <- c("Auctions","Buy it now","New","Used","Free Shipping","Best Offer","Sold")
@@ -19,7 +20,7 @@ gq <- function(pred){ #gq = get query
   map[map$predicates == pred,]$query
 } 
 scrape <- function(url){
-  html = read_html(url)
+  html = read_html(url,verbose = TRUE)
   web_pages = html_nodes(html, ".vip") %>%
     html_attr("href")
   
@@ -40,18 +41,17 @@ scrape <- function(url){
     str_trim() %>%
     str_extract("[$0-9.]*") 
   
-  ending_time = html_nodes(html, ".tme") %>%
-    html_text() %>%
-    str_trim() 
   
-  t = cbind(title, price, ending_time, shipping_cost, web_pages)  
+  t = cbind(title, price,  shipping_cost, web_pages)  
   final_df = as.data.frame(t)
   final_df$shipping_cost[final_df$shipping_cost=="character(0)"] = "Calculate"
   return(final_df)
 }
 total <- function(df){
   z <- df
-  z$price <- as.numeric(substring(z$price, 2))
+  if(nrow(z) == 0){
+    return(z)
+  }
   free.rep <- function(row){
     ifelse(row$shipping_cost == "FREE", yes = 0, no = row$shipping_cost)
   }
@@ -61,45 +61,63 @@ total <- function(df){
            yes = substring(row$shipping_cost, 2), no = row$shipping_cost)
   }
   z$shipping_cost <- apply(z, 1, dollar.rep)
-  calc.rep <- function(row){
-    calc <- filter(z, shipping_cost != "Calculate")
+  
+  
+  calc <- filter(z, shipping_cost != "Calculate")
+  if(nrow(calc) == 0){
+    calc.mean = 10
+  }else{
     calc.mean <- mean(as.numeric(calc$shipping_cost))
-    ifelse(row['shipping_cost'] == "Calculate", 
-           yes = calc.mean + as.numeric(row['price']), 
-           no = (as.numeric(row['price']) + as.numeric(row['shipping_cost'])))
   }
+   
+  calc.rep <- function(row){
+    #print(row["price"])
+    print(as.numeric(row["price"]))
+    ifelse(row['shipping_cost'] == "Calculate", 
+           yes = calc.mean + as.numeric(row["price"]), 
+           no = (as.numeric(row["price"]) + as.numeric(row['shipping_cost'])))
+    
+  }
+  
   z$total <- apply(z, 1, calc.rep)
+  
+  
+  
   calc.est <- function(row){
     ifelse(row['shipping_cost'] == "Calculate", yes = "estimated", 
            no = "exact")
   }
   z$est <- apply(z, 1, calc.est)
-  z$price <- df$price
-  add_dollar <- function(row){
-    ifelse(row['shipping_cost'] != "Calculate", 
-           yes = paste0("$", row['shipping_cost']), 
-           no = row['shipping_cost'])
-  }
-  z$shipping_cost <- apply(z, 1, add_dollar)
-  z$total <- paste0("$", z$total)
+  #z$price <- df$price
+  # add_dollar <- function(row){
+  #   ifelse(row$shipping_cost != "Calculate", 
+  #          yes = paste0("$", row$shipping_cost), 
+  #          no = row$shipping_cost)
+  # }
+  #z$shipping_cost <- apply(z, 1, add_dollar)
+  #z$total <- paste0("$", z$total)
   return(z)
 }
 
-filter_best <- function(active, hist){
+filter_best <- function(active, histo){
+  if(nrow(active) == 0 | nrow(hist) == 0)
+    return("No cheap lego set detected :(")
   active <- total(active)
-  hist <- total(active)
-  active$total <- as.numeric(substring(active$total, 2))
+  histo <- total(histo)
+  #active$total <- as.numeric(substring(active$total, 2))
   x <- active[order(active$total, decreasing = FALSE),]
-  hist$total <- as.numeric(substring(hist$total, 2))
-  y <- hist[order(hist$total, decreasing = FALSE),]
+  #histo$total <- as.numeric(substring(histo$total, 2))
+  y <- histo[order(histo$total, decreasing = FALSE),]
   x$savings <- median(x$total) - x$total
   cutoff <- quantile(y$total, probs = .25)
   best <- filter(x, total <= cutoff)
-  best$savings <- ifelse(best$savings >= 0, 
-                         yes = paste0('$', best$savings), 
-                         no = paste0('-$',substring(best$savings,2)))
-  best$total <- paste0("$", best$total)
-  return(list(cutoff = cutoff,best = best))
+  # best$savings <- ifelse(best$savings >= 0, 
+  #                        yes = paste0('$', best$savings), 
+  #                        no = paste0('-$',substring(best$savings,2)))
+  if(nrow(best) == 0)
+    return("No cheap lego set detected :(")
+  #best$total <- paste0("$", best$total)
+  return(best)
 }
 filter_brute <- function(df){
   df$price <- as.numeric(substring(df$price, 2))
@@ -110,13 +128,13 @@ filter_brute <- function(df){
   x <- filter(x, price >= lb)
   return(x)
 }
-filter_kmeans <- function(df){
-  df$price <- as.numeric(substring(df$price, 2))
-  clu <- kmeans(df$price,3)$cluster
-  df <- cbind(df,clu)
-  x <- filter(df, clu == 2)
-  return(x)
-}
+# filter_kmeans <- function(df){
+#   df$price <- as.numeric(substring(df$price, 2))
+#   clu <- kmeans(df$price,3)$cluster
+#   df <- cbind(df,clu)
+#   x <- filter(df, clu == 2)
+#   return(x)
+# }
 
 
 base_url <- "http://www.ebay.com/sch/i.html?_from=R40"
@@ -145,17 +163,18 @@ shinyServer(function(input, output,session) {
     input$freeshipping
   })
   
-  clustering = reactive({
-    input$clustering
-  })
-  
-  sortBy = reactive({
-    input$sortBy
-  })
+  # clustering = reactive({
+  #   input$clustering
+  # })
+  # 
+  # sortBy = reactive({
+  #   input$sortBy
+  # })
   
   url = reactive({
-    url = paste0(base_url,"&_nkw=Lego ",set(), gq(type()), gq(condition()))
-    print(url)
+    setname <- str_replace_all(set()," ","%20")
+    url = paste0(base_url,"&_nkw=Lego%20",setname, gq(type()), gq(condition()))
+    #print(url)
     print(best_offer())
     if(!is.null(best_offer()))
       if(best_offer())
@@ -173,43 +192,35 @@ shinyServer(function(input, output,session) {
   })
   
   active = reactive({
-    if(clustering() == "Brute Force")
+    # if(clustering() == "Brute Force")
       return(filter_brute(scrape(url())))
-    else if(clustering() == "Kmeans")
-      return(filter_kmeans(scrape(url())))
+    # else if(clustering() == "Kmeans")
+    #   return(filter_kmeans(scrape(url())))
   })
   
   historical = reactive({
-    url_his = paste0(url(),gq("Sold"))  #order will be ending recent, no matter sop = 1 or 10
-    if(clustering() == "Brute Force")
+    url_his = paste0(url(),gq("Sold"))  
+    url_his = str_replace(url_his, "&_ipg=200","")
+    url_his = str_replace(url_his, "&_sop=1","") #order will be ending recent
+    url_his = str_replace(url_his, "&_sop=10","") #order will be ending recent
+    # if(clustering() == "Brute Force")
       return(filter_brute(scrape(url_his)))
-    else if(clustering() == "Kmeans")
-      return(filter_kmeans(scrape(url_his)))
+    # else if(clustering() == "Kmeans")
+    #   return(filter_kmeans(scrape(url_his)))
   })
   
   
   results = reactive({
-    res <- filter_best(active(), hist())$best
-    if(sortBy() == "lowest total cost"){
-      y <- res[order(res$total, decreasing = FALSE),]
-    }
-    else if(sortBy() == "time ending soonest"){
-      y <- res
-      res$ending_time <- lapply(res$ending_time, strptime, "%b-%d %H:%M")
-      ind <- sapply(res$ending_time, as.numeric)
-      ind <- order(ind, decreasing = FALSE)
-      y <- y[ind,]
-    }
+    res <- filter_best(active(), historical())
+    if(res == "No cheap lego set detected :(")
+      return(data.frame(Empty = "No cheap lego set detected :("))
+    y <- res[order(res$total, decreasing = FALSE),]
+
+    
     y
-  })
-  output$cutoff_price <- renderText({
-    #naive approach: get the 25% quantile of historical()
-    filter_best(active(), hist())$cutoff
   })
   
   output$table <- renderTable({
     results()
   })
-  
-  
 })
