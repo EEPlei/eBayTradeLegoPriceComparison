@@ -1,0 +1,157 @@
+---
+title: "Homework 5 Duke Dinosaurs Final Project"
+output: html_document
+---
+
+##Introduction##
+
+Are you having trouble finding best offer when shopping on eBay? Do you want to find best bids more easier? Have a try on our Shiny App, "Cheap Lego From eBay"! The initial idea is from Tianyi, he is an experienced lego trader. When he shopping lego sets on eBay, in most cases it takes too much time finding best offer and comparing bids. So we decided to develop a shiny app to solve this problem and to be user friendly.
+
+Our shiny app works like this. In sidebarPanel, there are inputs options for users to input like select a lego set, type of the listing, checkbox for best offer, conditions of listing and checkbox for free shipping. We offer 6 of the most popular lego sets on eBay for users to choose. After users select their interested lego sets from our list, in the type of the listing button, users have options to choose "Auctions" or "Buy it now". If users choose "Auctions", the app would return best bids list according to user's input. If users choose "Buy it now", the app would return best price list. Users also have options to choose condition of the listing like "New" or "Used", and check if free shipping.
+
+Trough our app, it saves us much time to browse the listings on eBay and struggle with finding the best bids. Our app is smart enough to give you best offer according to your needs.
+
+##ui##
+
+The code below is our sidebar layout. Our app consists of `sidebarPanel` and `mainPanel`. For `sidebarPanel`, it contains all the inputs from users. `mainPanel` is the output of the app, `textOutput` and `tableOutput` which contains the best offer/bids.
+```{r, eval=FALSE}
+   sidebarLayout(
+    sidebarPanel(
+      selectInput("set", "Select a Lego set:", Sets$sets),
+      hr(),
+      radioButtons("type", "Type of the listing", c("Auctions","Buy it now")),
+      hr(),
+      conditionalPanel(
+        condition="input.type == 'Buy it now'",
+        checkboxInput("best_offer", "Best Offer", FALSE)
+      ),
+      radioButtons("condition", "Condition of the listing", c("New","Used")),
+      hr(),
+      checkboxInput("free_shipping", "Free Shipping", FALSE),
+      hr()
+    ),
+    # Show a plot of the generated distribution
+    mainPanel(
+      h3("Results:"),
+      h4("Scraping is slow...Please be patient."),
+      tableOutput("table")
+    )
+  )
+```
+
+
+##server##
+
+Scrape the data
+
+To scrape the data, we might use eBay API. However, we cannot find an API as easy as Dark Sky weather. Actually eBay's API requires JavaScript or CSS codings. However, we have another idea to scrape the data. To the listings, all we need is the url of the page. We care actually do the query directly in the url. Below are the mappings of each predicate of the query and the corresponding syntax in the url. All we need is to select the desired tag the concatenate them with the base url, the get the final url we want.
+
+`Base URL: http://www.ebay.com/sch/`
+`&_nkw=Starbucks%20card : Keywords`
+`&_sacat=267 : Category ID`
+`&_pgn=1 : Page Number`
+`&_ipg=200 : Items Per Page (200,100,50,25,10,5)`
+`&LH_Auction=1 : Auctions`
+`&LH_BIN=1 : BIN`
+`&LH_CAds=1 : ClassAds`
+`&LH_EXPEDITED=1 : Expedited Shipping / Express Delivery`
+`&LH_GIFAST=1 : Get It Fast`
+`&LH_FS=1 : Free Shipping/S&H/P&P`
+`&_sop=1 : Time: Ending Soonest`
+`&_sop=10 : Time: Newly Listed`
+`&_sop=12 : Best Match`
+`&_sop=3 : Price: Highest First`
+`&_sop=15 : Price + Shipping: Lowest First`
+`&_sop=16 : Price + Shipping: Highest First`
+`&_sop=7 : Distance: Nearest First`
+`&_dmd=1 : Show as List`
+`&_dmd=7 : Show as List with Item Numbers`
+`&_dmd=2 : Show as Picture Gallery`
+`&_dmd=5 : Show as BIN/Auctions Side-by-Side`
+`&LH_Complete=1 : Completed Listings`
+`&LH_Sold=1 : Items that Sold`
+`&LH_TitleDesc=1 : Also Search Description`
+`&LH_BO=1 : Accepts Best Offer`
+`&LH_Lots=1 : Listed as Lots`
+`&LH_TopRatedSellers=1 : TRS only`
+`&LH_PrefLoc=0 : items on eBay.____`
+`&LH_PrefLoc=1 : items limited to: local country`
+`&LH_PrefLoc=2 : items limited to: Worldwide`
+`&LH_PrefLoc=3 : items limited to: local continent (North America, EU, ...)`
+`&LH_SpecificSeller= : Include/Exclude Sellers: ( include: 1..buy%2Cwesellstuff | exclude: 2..buy%2Cwesellstuff [ %2C = , ] )`
+`&LH_ItemCondition=11 : condition = New ( can be multiples:` `&LH_ItemCondition=10%7C11%7C12 [ %7C = | ] )`
+`&LH_ItemCondition=12 : condition = Used`
+`&LH_ItemCondition=10 : condition = Not Specified`
+`&LH_ItemCondition=1000 : condition = Brand New`
+`&LH_ItemCondition=2750 : condition = Like New`
+`&LH_ItemCondition=4000 : condition = Very Good`
+`&LH_ItemCondition=5000 : condition = Good`
+`&LH_ItemCondition=6000 : condition = Acceptable`
+`&_rss=1 : enables RSS feed ( also convert URL to: http://www.ebay.com/sch/rss/______ )`
+
+Since we have offer two type options: "Auctions" and "Buy it now" for users to choose, we need to scrape data accordingly. If the user chooses auction type, then we scrape the 200 listings which are ending soonest because listing's current bid are still changing and only those listings will have prices close to their true ending prices. We set this to help users to make most correct decisions. If the user chooses buy it now type, we then scrape the 200 listings which are most newly listed. We do so because we assume the underpriced sets cannot be on the table for a long time since the market is efficient and everybody is trying to take the free money from the table. Therefore, underpriced oppotunites should only and be mostly likely to appear in the newest listings. Below is our scrape function.
+```{r, eval=FALSE}
+scrape <- function(url){
+    html = read_html(url,verbose = TRUE)
+    web_pages = html_nodes(html, ".vip") %>%
+    html_attr("href")
+  
+    shipping_cost = lapply(web_pages, 
+                           function(x){
+                             link = read_html(x)
+                             shipping_cost = html_nodes(link, "#fshippingCost")
+                             %>%
+                             html_text() %>%
+                             str_trim()
+                         })
+  
+    title = html_nodes(html, ".lvtitle") %>%
+            html_text() %>%
+            str_trim()
+  
+    price = html_nodes(html, ".prc .bold") %>%
+            html_text() %>%
+            str_trim() %>%
+            str_extract("[$0-9.]*") 
+  
+  
+    t = cbind(title, price,  shipping_cost, web_pages)  
+    final_df = as.data.frame(t)
+    final_df$shipping_cost[final_df$shipping_cost=="character(0)"]="Calculate"
+    return(final_df)
+}
+```
+
+Now we have scraped the result as a table. However, as an experienced Lego trader on eBay, I have to point out that, this table actually contains many listings I don't want to see. Firstly, some listings are just some minifigures from a whole set, or merely the instruction manuals from a set. In such case, those listings will have very low prices compared with a normal set. Also, some listings will have very high prices compared with a normal set because the seller might compare the Lego set being searched with another set or other multiple sets. 
+
+Filter out the result
+
+To filter those result out, our approach is a brute force approach, which only keeps the listings whose prices are within the interval [0.5*median_price, 1.5*median_price]. Because median is not affected by outliers, so such a way could filter out the very cheap and very expensive sets.In the result table, the total cost is added by price and shipping cost. Since the shipping cost varies by zipcode, so we scrape the shipping cost and get the average as our shipping cost. Therefore, the total cost is an estimated value. Our filter functions are like below.
+
+
+```{r, eval=FALSE}
+
+filter_best <- function(active, histo){
+  if(nrow(active) == 0 | nrow(hist) == 0)
+    return("No cheap lego set detected :(")
+  active <- total(active)
+  histo <- total(histo)
+  x <- active[order(active$total, decreasing = FALSE),]
+  y <- histo[order(histo$total, decreasing = FALSE),]
+  x$savings <- median(x$total) - x$total
+  cutoff <- quantile(y$total, probs = .25)
+  best <- filter(x, total <= cutoff)
+  if(nrow(best) == 0)
+    return("No cheap lego set detected :(")
+  return(best)
+}
+filter_brute <- function(df){
+  df$price <- as.numeric(substring(df$price, 2))
+  x <- df[order(df$price, decreasing = FALSE),]
+  lb <- median(x$price)*0.5
+  hb <- median(x$price)*1.5
+  x <- filter(x, price <= hb)
+  x <- filter(x, price >= lb)
+  return(x)
+}
+```
