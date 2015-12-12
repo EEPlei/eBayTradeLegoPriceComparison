@@ -21,28 +21,28 @@ gq <- function(pred){ #gq = get query
 scrape <- function(url){
   html = read_html(url)
   web_pages = html_nodes(html, ".vip") %>%
-              html_attr("href")
+    html_attr("href")
   
   shipping_cost = lapply(web_pages, 
                          function(x){
                            link = read_html(x)
                            shipping_cost = html_nodes(link, "#fshippingCost") %>%
-                                           html_text() %>%
-                                           str_trim()
+                             html_text() %>%
+                             str_trim()
                          })
   
   title = html_nodes(html, ".lvtitle") %>%
-          html_text() %>%
-          str_trim()
+    html_text() %>%
+    str_trim()
   
   price = html_nodes(html, ".prc .bold") %>%
-          html_text() %>%
-          str_trim() %>%
-          str_extract("[$0-9.]*") 
+    html_text() %>%
+    str_trim() %>%
+    str_extract("[$0-9.]*") 
   
   ending_time = html_nodes(html, ".tme") %>%
-                html_text() %>%
-                str_trim() 
+    html_text() %>%
+    str_trim() 
   
   t = cbind(title, price, ending_time, shipping_cost, web_pages)  
   final_df = as.data.frame(t)
@@ -161,8 +161,8 @@ shinyServer(function(input, output,session) {
       if(best_offer())
         url = paste0(url, gq("Best Offer"))
     if(!is.null(free_shipping()))
-        if(free_shipping())
-          url = paste0(url, gq("Free Shipping"))
+      if(free_shipping())
+        url = paste0(url, gq("Free Shipping"))
     url = paste0(url, "&_ipg=200")  #200 listings per page
     if(type() == 'Auctions')
       url = paste0(url, "&_sop=1")  #if auctions, get the ending soonest listings
@@ -194,7 +194,11 @@ shinyServer(function(input, output,session) {
       y <- res[order(res$total, decreasing = FALSE),]
     }
     else if(sortBy() == "time ending soonest"){
-      y <- res[order(as.numeric(res$time), decreasing = FALSE),]
+      y <- res
+      res$ending_time <- lapply(res$ending_time, strptime, "%b-%d %H:%M")
+      ind <- sapply(res$ending_time, as.numeric)
+      ind <- order(ind, decreasing = FALSE)
+      y <- y[ind,]
     }
     y
   })
