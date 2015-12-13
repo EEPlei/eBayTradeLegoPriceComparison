@@ -7,9 +7,11 @@ runtime: shiny
 
 ##Introduction##
 
-Are you having trouble finding best offer when shopping on eBay? Do you want to find best bids more easier? Have a try on our Shiny App, "Cheap Lego From eBay"! The initial idea is from Tianyi, he is an experienced lego trader. When he shopping lego sets on eBay, in most cases it takes too much time finding best offer and comparing bids. So we decided to develop a shiny app to solve this problem and to be user friendly.
+Are you having trouble finding best offer when shopping on eBay? Do you want to find best bids more easier? Have a try on our Shiny App, "Cheap Lego From eBay"! The initial idea is from Tianyi, an experienced lego trader. While shopping for lego sets on eBay, a common case scenario is that it takes too much time to find the best offer while comparing bids. The goal of this shiny app is to provide a simpler and user friendly way of obtaining the information. 
 
-Our shiny app works like this. In sidebarPanel, there are inputs options for users to input like select a lego set, type of the listing, checkbox for best offer, conditions of listing and checkbox for free shipping. We offer 6 of the most popular lego sets on eBay for users to choose. After users select their interested lego sets from our list, in the type of the listing button, users have options to choose "Auctions" or "Buy it now". If users choose "Auctions", the app would return best bids list according to user's input. If users choose "Buy it now", the app would return best price list. Users also have options to choose condition of the listing like "New" or "Used", and check if free shipping.
+Our shiny app works by allowing the users to select inputs such as a specific lego set, type of listing, best offer, listing conditions, and free shipping. These are all variables that are commonly seen while searching on eBay. We offer 6 of the most popular lego sets on eBay for users to choose. After users select their interested lego sets from our list, in the type of the listing button, users have options to choose "Auctions" or "Buy it now". If users choose "Auctions", the app would return best bids list according to user's input. If users choose "Buy it now", the app would return best price list. Users also have options to choose condition of the listing like "New" or "Used", and check if free shipping.
+
+
 
 Trough our app, it saves us much time to browse the listings on eBay and struggle with finding the best bids. Our app is smart enough to give you best offer according to your needs.
 
