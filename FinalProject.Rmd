@@ -12,11 +12,9 @@ options(warn=-1)
 
 Are you having trouble finding best offer when shopping on eBay? Do you want to find best bids more easier? Have a try on our Shiny App, "Cheap Lego From eBay"! The initial idea is from Tianyi, an experienced lego trader. While shopping for lego sets on eBay, a common case scenario is that it takes too much time to find the best offer while comparing bids. The goal of this shiny app is to provide a simpler and user friendly way of obtaining the information. 
 
-Our shiny app works by allowing the users to select inputs such as a specific lego set, type of listing, best offer, listing conditions, and free shipping. These are all variables that are commonly seen while searching on eBay. We offer 6 of the most popular lego sets on eBay for users to choose. After users select their interested lego sets from our list, in the type of the listing button, users have options to choose "Auctions" or "Buy it now". If users choose "Auctions", the app would return best bids list according to user's input. If users choose "Buy it now", the app would return best price list. Users also have options to choose condition of the listing like "New" or "Used", and check if free shipping.
+Our shiny app works by allowing the users to select inputs such as a specific lego set, type of listing, best offer, listing conditions, and free shipping. These are all variables that are commonly seen while searching on eBay. We offer six of the most popular lego sets on eBay for users to choose from. After selecting the set they are interested in, users may decide if they are interested in "Auctions" or "Buy it now". If users choose "Auctions", the app will return a list of best bids according to the user's chosen inputs. If users choose "Buy it now", the app will return a list of best prices. Users also have the option to choose condition of the listed item and to check if free shipping is offered. 
 
-
-
-Trough our app, it saves us much time to browse the listings on eBay and struggle with finding the best bids. Our app is smart enough to give you best offer according to your needs.
+The app will save users a lot of time by browsing through eBay listings for them. Our app is smart enough to give you best offer according to your needs.
 
 ##ui##
 
@@ -131,9 +129,9 @@ scrape <- function(url){
 
 Now we have scraped the result as a table. However, as an experienced Lego trader on eBay, I have to point out that, this table actually contains many listings I don't want to see. Firstly, some listings are just some minifigures from a whole set, or merely the instruction manuals from a set. In such case, those listings will have very low prices compared with a normal set. Also, some listings will have very high prices compared with a normal set because the seller might compare the Lego set being searched with another set or other multiple sets. 
 
-Filter out the result
+#Filter out the result#
 
-To filter those result out, our approach is a brute force approach, which only keeps the listings whose prices are within the interval [0.5*median_price, 1.5*median_price]. Because median is not affected by outliers, so such a way could filter out the very cheap and very expensive sets.In the result table, the total cost is added by price and shipping cost. Since the shipping cost varies by zipcode, so we scrape the shipping cost and get the average as our shipping cost. Therefore, the total cost is an estimated value. Our filter functions are like below.
+To filter those result out, our approach is a brute force approach, which only keeps the listings whose prices are within the interval [0.5*median_price, 1.5*median_price]. Because median is not affected by outliers, so such a way could filter out the very cheap and very expensive sets.In the result table, the total cost is added by price and shipping cost. Since the shipping cost varies by zipcode, so we scrape the shipping cost and get the average as our shipping cost. Therefore, the total cost is an estimated value. Our filter functions are illustrated below.
 
 
 ```{r, eval=FALSE}
@@ -162,7 +160,8 @@ filter_brute <- function(df){
   return(x)
 }
 ```
-
+#Visualization# 
+We have embedded our shiny app into this RMD file so that you may play around with it. 
 ```{r, echo = FALSE}
 library(shiny)
 library(magrittr)
