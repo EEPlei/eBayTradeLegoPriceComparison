@@ -1,8 +1,8 @@
 library(shiny)
 library(magrittr)
+library(stringr)
 library(httr)
 library(dplyr)
-library(stringr)
 library(rvest)
 library(xml2)
 
@@ -100,7 +100,7 @@ total <- function(df){
 }
 
 filter_best <- function(active, histo){
-  if(nrow(active) == 0 | nrow(hist) == 0)
+  if(nrow(active) == 0 | nrow(histo) == 0)
     return("No cheap lego set detected :(")
   active <- total(active)
   histo <- total(histo)
