@@ -12,8 +12,31 @@ query_map <- data.frame(predicates = predicates, query = query,stringsAsFactors 
 
 shinyUI(fluidPage(
   
+  
+  tags$head(
+    tags$style(HTML("
+                    @import url('//fonts.googleapis.com/css?family=Lobster|Cabin:400,700');
+                    
+                    h1 {
+                    font-family: 'Lobster', cursive;
+                    font-weight: 500;
+                    line-height: 1.1;
+                    font-size: 54px;
+                    color: #04B404;
+                    }
+                    
+                    body {
+                    #background-color: #A93C43;
+                    background-image: url('http://img14.deviantart.net/c9d0/i/2012/237/c/7/lego_wallpaper_hulk_by_zarzamorita-d5ccy2e.jpg');
+                    }
+                    
+                    "))
+    ),
+  
+  headerPanel("Cheap Lego From eBay"),
+  
   # Application title
-  titlePanel("Cheap Lego From eBay"),
+
   sidebarLayout(
     sidebarPanel(
       selectInput("set", "Select a Lego set:", Sets$sets),
@@ -27,8 +50,10 @@ shinyUI(fluidPage(
       radioButtons("condition", "Condition of the listing", c("New","Used")),
       hr(),
       checkboxInput("free_shipping", "Free Shipping", FALSE),
-      hr()
+      hr(),
+      actionButton("go", "Search")
     ),
+    
     
     # Show a plot of the generated distribution
     mainPanel(

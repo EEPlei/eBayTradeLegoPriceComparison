@@ -142,36 +142,36 @@ base_url <- "http://www.ebay.com/sch/i.html?_from=R40"
 
 
 shinyServer(function(input, output,session) {
-  set = reactive({
+  set = eventReactive(input$go,{
     Sets[Sets$sets == input$set,]$names
   })
   
-  type = reactive({
+  type = eventReactive(input$go,{
     input$type
   })
   
-  condition = reactive({
+  condition = eventReactive(input$go,{
     input$condition
   })
   
-  best_offer = reactive({
+  best_offer = eventReactive(input$go,{
     if(type() == "Buy it now")
       input$best_offer
   })
   
-  free_shipping = reactive({
+  free_shipping = eventReactive(input$go,{
     input$freeshipping
   })
   
-  # clustering = reactive({
+  # clustering = eventReactive(input$go,{
   #   input$clustering
   # })
   # 
-  # sortBy = reactive({
+  # sortBy = eventReactive(input$go,{
   #   input$sortBy
   # })
   
-  url = reactive({
+  url = eventReactive(input$go,{
     setname <- str_replace_all(set()," ","%20")
     url = paste0(base_url,"&_nkw=Lego%20",setname, gq(type()), gq(condition()))
     #print(url)
@@ -191,14 +191,14 @@ shinyServer(function(input, output,session) {
     url
   })
   
-  active = reactive({
+  active = eventReactive(input$go,{
     # if(clustering() == "Brute Force")
       return(filter_brute(scrape(url())))
     # else if(clustering() == "Kmeans")
     #   return(filter_kmeans(scrape(url())))
   })
   
-  historical = reactive({
+  historical = eventReactive(input$go,{
     url_his = paste0(url(),gq("Sold"))  
     url_his = str_replace(url_his, "&_ipg=200","")
     url_his = str_replace(url_his, "&_sop=1","") #order will be ending recent
@@ -210,7 +210,7 @@ shinyServer(function(input, output,session) {
   })
   
   
-  results = reactive({
+  results = eventReactive(input$go,{
     res <- filter_best(active(), historical())
     if(res == "No cheap lego set detected :(")
       return(data.frame(Empty = "No cheap lego set detected :("))
