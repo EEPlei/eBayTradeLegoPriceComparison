@@ -1,3 +1,7 @@
 # eBay_trade_Lego
-tentatively Sta523 final project
-fgrgergreg
+
+Are you having trouble finding best offer when shopping on eBay? Do you want to find best bids more easier? Have a try on our Shiny App, "Cheap Lego From eBay"! The initial idea is from Tianyi, an experienced lego trader. While shopping for lego sets on eBay, a common case scenario is that it takes too much time to find the best offer while comparing bids. The goal of this shiny app is to provide a simpler and user friendly way of obtaining the information. 
+
+Our shiny app works by allowing the users to select inputs such as a specific lego set, type of listing, best offer, listing conditions, and free shipping. These are all variables that are commonly seen while searching on eBay. We offer six of the most popular lego sets on eBay for users to choose from. After selecting the set they are interested in, users may decide if they are interested in "Auctions" or "Buy it now". If users choose "Auctions", the app will return a list of best bids according to the user's chosen inputs. If users choose "Buy it now", the app will return a list of best prices. Users also have the option to choose condition of the listed item and to check if free shipping is offered. 
+
+The app will save users a lot of time by browsing through eBay listings for them. Our app is smart enough to give you best offer according to your needs.
